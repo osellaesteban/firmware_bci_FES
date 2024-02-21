@@ -81,7 +81,7 @@
 #include "dsp_EMG.h"
 #include <arm_math.h>
 
-#include "serial_header.h"
+#include "serial_headers.h"
 /*==================[macros and definitions]=================================*/
 
 // serial communication datarate

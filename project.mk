@@ -42,13 +42,7 @@
 #################################################################################
 
 
-PROJECT = projects/stim_fatigue_estimation
-
-PROJECT = projects/fatigue_estimation
-PROJECT = projects/data_serial_TxRx
-PROJECT = projects/stimControl
-PROJECT = projects/4_ADS1299Streaming
-PROJECT = projects/data_serial_TxRx_sinRB
+PROJECT = projects/integration
 
 
 TARGET = lpc4337_m4
