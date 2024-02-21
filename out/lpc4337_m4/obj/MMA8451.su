@@ -1,0 +1,4 @@
+MMA8451.c:57:6:MMA8451IsAlive	32	static
+MMA8451.c:72:6:MMA8451PrepareDefaultConfig	16	static
+MMA8451.c:80:6:MMA8451Config	40	static
+MMA8451.c:111:6:MMA8451Read	48	static

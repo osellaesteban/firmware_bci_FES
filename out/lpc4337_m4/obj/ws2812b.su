@@ -1,0 +1,15 @@
+scu_18xx_43xx.h:135:20:Chip_SCU_PinMuxSet	16	static
+gpio_18xx_43xx.h:146:20:Chip_GPIO_SetPinDIROutput	16	static
+gpio_18xx_43xx.h:375:20:Chip_GPIO_SetPinOutHigh	16	static
+gpio_18xx_43xx.h:403:20:Chip_GPIO_SetPortOutLow	24	static
+gpio_18xx_43xx.h:417:20:Chip_GPIO_SetPinOutLow	16	static
+ws2812b.c:37:6:WS2812bInit	16	static
+ws2812b.c:43:6:Ws2812bSend	24	static
+ws2812b.c:88:13:Ws2812bSendHigh	16	static
+ws2812b.c:103:13:Ws2812bSendLow	16	static
+ws2812b.c:117:6:Ws2812bSendRet	8	static
+ws2812b.c:123:7:Ws2812bConfigGPIO	24	static
+ws2812b.c:131:6:nada	4	static
+ws2812b.c:133:6:Ws2812bTest	8	static
+ws2812b.c:143:6:Ws2812bInterruptDisable	4	static
+ws2812b.c:148:6:Ws2812bInterruptActive	4	static

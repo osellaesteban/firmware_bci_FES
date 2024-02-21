@@ -1,0 +1,4 @@
+hc_sr04.c:75:6:HcSr04Init	16	static
+hc_sr04.c:87:10:HcSr04ReadDistanceInCentimeters	16	static
+hc_sr04.c:106:10:HcSr04ReadDistanceInInches	16	static
+hc_sr04.c:125:6:HcSr04Deinit	8	static

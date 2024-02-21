@@ -1,0 +1,5 @@
+buzzer.c:72:6:BuzzerInit	16	static
+buzzer.c:82:6:BuzzerOn	8	static
+buzzer.c:87:6:BuzzerOff	8	static
+buzzer.c:92:6:BuzzerSetFrec	16	static
+buzzer.c:97:6:BuzzerDeinit	8	static

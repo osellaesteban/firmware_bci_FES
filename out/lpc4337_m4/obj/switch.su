@@ -1,0 +1,8 @@
+switch.c:90:8:SwitchesInit	8	static
+switch.c:101:8:SwitchesRead	16	static
+switch.c:115:6:SwitchActivInt	16	static
+switch.c:138:6:SwitchesActivGroupInt	32	static
+switch.c:166:6:Switch1Int	8	static
+switch.c:170:6:Switch2Int	8	static
+switch.c:174:6:Switch3Int	8	static
+switch.c:178:6:Switch4Int	8	static

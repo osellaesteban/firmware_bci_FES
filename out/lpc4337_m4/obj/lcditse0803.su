@@ -1,0 +1,6 @@
+lcditse0803.c:77:6:LcdItsE0803Init	8	static
+lcditse0803.c:99:6:LcdItsE0803BCDtoPin	16	static
+lcditse0803.c:108:7:LcdItsE0803Write	24	static
+lcditse0803.c:142:10:LcdItsE0803Read	4	static
+lcditse0803.c:147:6:LcdItsE0803Off	8	static
+lcditse0803.c:163:6:LcdItsE0803DeInit	8	static

@@ -1,0 +1,8 @@
+core_cm4.h:1550:22:NVIC_SetPriority	16	static
+core_cm4.h:1677:26:SysTick_Config	16	static
+systick.c:64:6:SystickInit	24	static
+systick.c:87:6:SystickInitUs	24	static
+systick.c:111:6:SysTick_Handler	8	static
+systick.c:116:6:SystickCounter	8	static
+systick.c:134:6:SystickCounterUs	8	static
+systick.c:152:6:SystickDeinit	4	static

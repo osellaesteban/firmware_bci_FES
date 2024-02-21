@@ -1,0 +1,3 @@
+tcrt5000.c:73:6:Tcrt5000Init	16	static
+tcrt5000.c:83:6:Tcrt5000ReadState	8	static
+tcrt5000.c:88:6:Tcrt5000Deinit	8	static

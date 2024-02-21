@@ -1,0 +1,4 @@
+scu_18xx_43xx.h:199:20:Chip_SCU_I2C0PinConfig	16	static
+i2c.c:79:10:Init_I2c	16	static
+i2c.c:94:9:I2CRead	32	static
+i2c.c:119:9:I2CWrite	32	static

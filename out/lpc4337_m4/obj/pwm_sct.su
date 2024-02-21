@@ -1,0 +1,17 @@
+scu_18xx_43xx.h:135:20:Chip_SCU_PinMuxSet	16	static
+scu_18xx_43xx.h:150:20:Chip_SCU_PinMux	24	static
+sct_18xx_43xx.h:339:20:Chip_SCT_SetControl	16	static
+sct_18xx_43xx.h:350:20:Chip_SCT_ClearControl	16	static
+sct_18xx_43xx.h:362:20:Chip_SCT_SetMatchReload	24	static
+sct_pwm_18xx_43xx.h:56:24:Chip_SCTPWM_GetTicksPerCycle	16	static
+sct_pwm_18xx_43xx.h:71:24:Chip_SCTPWM_PercentageToTicks	16	static
+sct_pwm_18xx_43xx.h:103:20:Chip_SCTPWM_SetDutyCycle	24	static
+sct_pwm_18xx_43xx.h:113:20:Chip_SCTPWM_Init	16	static
+sct_pwm_18xx_43xx.h:129:20:Chip_SCTPWM_Start	16	static
+sct_pwm_18xx_43xx.h:139:20:Chip_SCTPWM_Stop	16	static
+pwm_sct.c:90:6:PWMInit	32	static
+pwm_sct.c:105:6:PWMOn	8	static
+pwm_sct.c:112:6:PWMOff	8	static
+pwm_sct.c:117:6:PWMSetDutyCycle	24	static
+pwm_sct.c:123:6:PWMSetFreq	32	static
+pwm_sct.c:134:6:PWMDeinit	8	static

@@ -1,0 +1,11 @@
+core_cm4.h:1467:22:NVIC_EnableIRQ	16	static
+scu_18xx_43xx.h:219:20:Chip_SCU_DAC_Analog_Config	4	static
+dac_18xx_43xx.h:129:20:Chip_DAC_ConfigDAConverterControl	24	static
+dac_18xx_43xx.h:143:20:Chip_DAC_SetDMATimeOut	16	static
+analog_io.c:70:7:ADC0_IRQHandler	8	static
+analog_io.c:77:6:AnalogInputInit	16	static
+analog_io.c:130:6:AnalogOutputInit	8	static
+analog_io.c:142:6:AnalogInputReadPolling	16	static
+analog_io.c:171:6:AnalogStartConvertion	8	static
+analog_io.c:176:6:AnalogInputRead	16	static
+analog_io.c:196:9:AnalogOutputWrite	16	static

@@ -1,0 +1,11 @@
+core_cm4.h:1467:22:NVIC_EnableIRQ	16	static
+core_cm4.h:1480:22:NVIC_DisableIRQ	16	static
+core_cm4.h:1550:22:NVIC_SetPriority	16	static
+core_cm4.h:1677:26:SysTick_Config	16	static
+ritimer_18xx_43xx.h:158:20:Chip_RIT_ClearInt	16	static
+timer.c:72:6:TimerInit	16	static
+timer.c:101:6:SysTick_Handler	16	static
+timer.c:112:6:RIT_IRQHandler	16	static
+timer.c:124:6:TimerStart	16	static
+timer.c:141:6:TimerStop	16	static
+timer.c:157:6:TimerReset	16	static

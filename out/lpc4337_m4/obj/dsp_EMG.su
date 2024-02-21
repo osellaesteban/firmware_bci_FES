@@ -1,0 +1,6 @@
+dsp_EMG.c:33:11:dsp_emg_rms_f32	24	static
+dsp_EMG.c:39:11:dsp_emg_power_f32	24	static
+dsp_EMG.c:46:11:dsp_emg_ptp_f32	40	static
+dsp_EMG.c:55:11:dsp_emg_iemg_f32	24	static
+dsp_EMG.c:68:11:dsp_emg_mdf_f32	72	dynamic
+dsp_EMG.c:101:11:dsp_emg_mnf_f32	72	dynamic
