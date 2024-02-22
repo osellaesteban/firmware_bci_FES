@@ -10,11 +10,12 @@
 
 //#include "systick.h"
 extern uint8_t HEAD;
+extern uint8_t SEMG_HEAD;
 extern uint8_t TAIL;
 
-extern uint8_t PEDAL_HEAD;
-extern uint8_t SEMG_HEAD;
-extern uint8_t ENCODER_HEAD;
+//extern uint8_t PEDAL_HEAD;
+
+//extern uint8_t ENCODER_HEAD;
 
 int32_t channel_data[8];
 uint8_t state[3];
@@ -23,6 +24,7 @@ uint8_t state[3];
 
 // samples obtained and loaded to the buffer
 uint8_t sEMGDrdy = 0;
+
 uint8_t sEMGBuff[sEMG_BUFFER_SIZE+4] = {};
 
 uint8_t*  sEMGGetBuffer(){
@@ -135,6 +137,8 @@ void Configure_Timer1(){
 void ConfigADS(void)
 {
 	if (!SIMULATE){
+		ADS1299Init();
+
 		/* Configura el canal 2 en modo diferencial, frecuencia de muestreo de 250Hz y el driver de pierna derecha */
 		ADS1299SetChannelsToDefaultConfigForEMG();
 		//ADS1299SetChannelsToDefaultConfigForECG();
@@ -165,5 +169,8 @@ void DeactivateADS(){
 		Chip_TIMER_Disable(LPC_TIMER1);
 }
 
+void sEMGSetDRDY(uint8_t val){
+	sEMGDrdy = val;
+}
 
 

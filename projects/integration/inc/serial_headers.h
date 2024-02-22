@@ -45,6 +45,21 @@ uint8_t PEDAL_HEAD = 0XCF;
 uint8_t SEMG_HEAD = 0XCE;
 uint8_t ENCODER_HEAD = 0XCD;
 
+// stimulator
+uint8_t STIM_CONFIG_HEAD = 0xFB;
+
+uint8_t STIM_CONFIG_ENABLED = 0XF0;
+uint8_t STIM_CONFIG_MODE = 0XF1;
+uint8_t STIM_CONFIG_POLARITY = 0XF2;
+uint8_t STIM_CONFIG_SOURCE= 0XF3;
+uint8_t STIM_CONFIG_ZERO = 0XF4;
+uint8_t STIM_CONFIG_TRIGGER = 0XF5;
+uint8_t STIM_CONFIG_BUZZER = 0XF6;
+uint8_t STIM_CONFIG_WIDTH = 0XF7;
+uint8_t STIM_CONFIG_RECOVERY = 0XF8;
+uint8_t STIM_CONFIG_DWELL = 0XF9;
+uint8_t STIM_CONFIG_PERIOD = 0XFA;
+
 
 /*==================[external functions declaration]=========================*/
 

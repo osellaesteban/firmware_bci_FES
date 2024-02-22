@@ -24,7 +24,6 @@
 
 #define sEMG_BUFFER_SIZE	(SEMG_NCHAN*sEMG_RESOL)
 
-
 static uint16_t semg_ind= 0;
 
 //void ReadData(void);
@@ -32,6 +31,7 @@ static uint16_t semg_ind= 0;
 // void sEMGBuffLoad(void);
 void ConfigADS(void);
 void DeactivateADS();
+void sEMGSetDRDY(uint8_t);
 uint8_t*  sEMGGetBuffer();
 uint16_t sEMGGetBuffSize();
 uint16_t sEMGGetsEMGRate();

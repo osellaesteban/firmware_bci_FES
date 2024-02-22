@@ -51,24 +51,23 @@
 /*!\mainpage
 *
 * \section genDesc Descripción de la aplicacion
-*	Sistema de simulaci'on y envio de datos de sEMG, encoder, y
-*	presi'on sobre los pedales.
+*	Sistema de generaci'on / simulaci'on y envio de datos de sEMG,
+*	encoder, y presi'on sobre los pedales.
 *	Estos datos son enviados por UART USB con cabecera propia
 *	segun el tipo de dato.
 *	Si bien el encoder tiene la posibilidad de ser utilizado a
-*	una frecuencia superior,
-*	a fin de simplificar la implementaci'on se hace un
-*	downsampling a la frecuencia del sEMG (2kHz).
+*	una frecuencia superior, a fin de simplificar la implementaci'on
+*	se hace un downsampling a la frecuencia de los pedales (80Hz).
 *
 * ---
 *
-* \subsection subSec01 Funcionamiento
-*	Parpadeo del led azul RGB a una frecuencia de 1Hz. Abre
-*	los canales UART ante cada nuevo dato, en las
-*	interrupciones donde se simula la lectura.
-*	Para utilizar en la EDU CIAA NXP, al ser un poncho para
-*	dicha placa consultar la bibligrafía en la página
-*	https://ponchodebiopotenciales.wordpress.com/ para más información
+* \section Sec01 Uso de HW:
+*   \subsection subSec01 sEMG:
+*   + if simulating: LPC_TIMER1
+*   + with ADS1299: SPI port and GPIO_LCD_2,GPIO_LCD_3,GPIO_LCD_4,GPIO_LCD_EN,
+	GPIO_LCD_RS
+*   \subsection subSec02 Stimulator
+*   + LPC_TIMER0
 *
 */
 
@@ -108,7 +107,6 @@ void SystickInt(void);
 
 
 /*==================[internal data definition]===============================*/
-bool new_data = false;
 
 
 
@@ -135,7 +133,7 @@ extern uint8_t sEMGDrdy;
  * \brief Inicializacion principal
  *
  */
-
+/*
 void Configure_Timer0(){
 	Chip_TIMER_Reset(LPC_TIMER0);
 
@@ -166,8 +164,8 @@ void Configure_Timer0(){
 	NVIC_EnableIRQ(TIMER0_IRQn);
 
 }
-
-
+*/
+/*
 
 
 void TIMER0_IRQHandler(void)
@@ -231,7 +229,7 @@ void TIMER0_IRQHandler(void)
 		}
 	}
 }
-
+*/
 
 
 
@@ -243,7 +241,6 @@ void SysInit(void)
 	serial_config serial_init = {SERIAL_PORT_PC, UART_BAUD_RATE, NULL};
 
 	UartInit(&serial_init);
-	ADS1299Init();
     SystickInit(500, SystickInt);
     fpuInit();//Enable FPU
 
@@ -267,7 +264,7 @@ int main(void)
 	 } u_buffer;*/
 	SysInit();
 	ConfigADS();
-	Configure_Timer0();
+	//Configure_Timer0();
 	//Configure_Timer1();
 	serial_config serial_init = {SERIAL_PORT_PC, UART_BAUD_RATE, NULL};
 	UartInit(&serial_init);
@@ -284,13 +281,13 @@ int main(void)
 				UartSendByte(SERIAL_PORT_PC, PedalsBuff+res);
 			pedalsDrdy = 0;
 		}
-		if(sEMGDrdy)
+		if(sEMGGetDRDY())
 		{
 			val = sEMGGetBuffer();
 			for(res = 0;res  < 4 + sEMG_BUFFER_SIZE; res++)
 				UartSendByte(SERIAL_PORT_PC, *(val+res));
-			sEMGDrdy = 0;
-			new_data = false;
+			sEMGSetDRDY(0);
+			//new_data = false;
 		}
 		if(EncoderDrdy)
 		{
