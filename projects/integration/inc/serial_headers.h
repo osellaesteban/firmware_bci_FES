@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef _SERIAL_HEADERS_H_
-#define _SERIAL_HEADERS_H_
+#ifndef SERIAL_HEADERS_H_
+#define SERIAL_HEADERS_H_
 
 /*==================[inclusions]=============================================*/
 
@@ -38,12 +38,12 @@ extern "C" {
 /*==================[external data declaration]==============================*/
 
 // Headers definition
-const uint8_t HEAD = 0xCA;
-const uint8_t TAIL = 0xAC;
+uint8_t HEAD = 0xCA;
+uint8_t TAIL = 0xAC;
 
-const uint8_t PEDAL_HEAD = 0XCF;
-const uint8_t SEMG_HEAD = 0XCE;
-const uint8_t ENCODER_HEAD = 0XCD;
+uint8_t PEDAL_HEAD = 0XCF;
+uint8_t SEMG_HEAD = 0XCE;
+uint8_t ENCODER_HEAD = 0XCD;
 
 
 /*==================[external functions declaration]=========================*/
@@ -55,4 +55,4 @@ const uint8_t ENCODER_HEAD = 0XCD;
 #endif
 
 /*==================[end of file]============================================*/
-#endif /* #ifndef _SERIAL_HEADERS_H_ */
+#endif /* #ifndef SERIAL_HEADERS_H_ */
