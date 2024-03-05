@@ -60,6 +60,10 @@ uint8_t STIM_CONFIG_RECOVERY = 0XF8;
 uint8_t STIM_CONFIG_DWELL = 0XF9;
 uint8_t STIM_CONFIG_PERIOD = 0XFA;
 
+// sEMG
+uint8_t SEMG_GAIN_HEADER = 0XC0;
+
+
 
 /*==================[external functions declaration]=========================*/
 

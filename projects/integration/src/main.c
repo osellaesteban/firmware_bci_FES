@@ -68,6 +68,11 @@
 	GPIO_LCD_RS
 *   \subsection subSec02 Stimulator
 *   + LPC_TIMER0
+*   + GPIO_1 con
+*
+*  ToDo:
+*  + A method should be included to online change the ADC gain by serial port
+*  or either GPIO
 *
 */
 
@@ -80,6 +85,8 @@
 #include "led.h"
 //#include "serial_headers.h"
 #include "sEMG.h"
+#include "stimulator.h"
+
 #include "serial_headers.h"
 
 /*==================[macros and definitions]=================================*/
@@ -90,7 +97,7 @@
 
 // SAMPLING PERIOD OF EACH VARIABLE
 #define PEDAL_RATE 		80
-#define ENCODER_RATE 	7800
+#define ENCODER_RATE 	80
 
 #define PEDAL_NCHAN		2
 #define ENCODER_NCHAN	1
@@ -100,7 +107,8 @@
 #define ENCODER_RESOL	2 // it is a 12 bits dac, but lets consider it as a 16 bit.
 /*==================[internal data declaration]==============================*/
 
-
+uint8_t stimulating = 0;
+static uint16_t demand = 0;
 
 /*==================[internal functions declaration]=========================*/
 void SystickInt(void);
@@ -129,107 +137,6 @@ uint8_t EncoderDrdy = 0;
 /*==================[external data definition]===============================*/
 extern uint8_t sEMGDrdy;
 /*==================[internal functions definition]==========================*/
-/*/fn void SysInit(void)
- * \brief Inicializacion principal
- *
- */
-/*
-void Configure_Timer0(){
-	Chip_TIMER_Reset(LPC_TIMER0);
-
-	// 2. Set Prescale value in PR
-	Chip_TIMER_PrescaleSet(LPC_TIMER0,Chip_Clock_GetRate(CLK_MX_TIMER0) / 1000000 - 1);
-
-	// 3. Set the count value in Match register(MR)
-	// Match 0 -> pedal force registry
-	Chip_TIMER_MatchEnableInt(LPC_TIMER0, 0);
-	Chip_TIMER_ResetOnMatchDisable(LPC_TIMER0, 0);
-	Chip_TIMER_StopOnMatchDisable(LPC_TIMER0, 0);
-	//uint32_t pedalMatch = (uint32_t) 1000000/( PEDAL_RATE); //Chip_TIMER_ReadPrescale(CLK_MX_TIMER1) / PEDAL_RATE);
-	uint32_t pedalMatch = (uint32_t) Chip_Clock_GetRate(CLK_MX_TIMER0)/(LPC_TIMER0->PR * PEDAL_RATE);
-	Chip_TIMER_SetMatch(LPC_TIMER0, 0, pedalMatch );
-
-	// 4. Set appropriate value in MCR.
-	Chip_TIMER_MatchEnableInt(LPC_TIMER0,0);
-//	Chip_TIMER_MatchEnableInt(LPC_TIMER0,1);
-
-	Chip_TIMER_ResetOnMatchEnable(LPC_TIMER0,0);
-	Chip_TIMER_Reset(LPC_TIMER0);
-
-
-	// 5. Enable the timer by configuring TCR.
-	Chip_TIMER_Enable(LPC_TIMER0);
-
-	// 6. Enable timer interrupt if needed.
-	NVIC_EnableIRQ(TIMER0_IRQn);
-
-}
-*/
-/*
-
-
-void TIMER0_IRQHandler(void)
-{
-	static uint32_t val, lost = 0,n_pedals = 0,encoder_ind=0;
-
-	if (Chip_TIMER_MatchPending(LPC_TIMER0, 0)) // pedals
-	{
-		Chip_TIMER_ClearMatch(LPC_TIMER0, 0);
-		if(!EncoderDrdy)
-		{
-			GPIOOff(GPIO_LED_1);
-
-			encoder_ind ++;
-			LedToggle(GPIO_LED_2);
-
-			EncoderBuff[0] = HEAD;
-			EncoderBuff[1] = ENCODER_HEAD;
-			EncoderBuff[2] = ENCODER_NCHAN;
-
-			for (uint8_t ch = 0;ch < ENCODER_NCHAN; ch++)
-			{
-				val = encoder_ind % ENCODER_RATE + ch;// (int32_t) 8388607+16777215*(arm_sin_f32((ch+1)*(semg_ind+1)*3.1416/SEMG_RATE));
-				EncoderBuff[3+ENCODER_RESOL*ch+1] = (uint8_t) (val>>8);
-				EncoderBuff[3+ENCODER_RESOL*ch+2] = (uint8_t) (val);
-			}
-
-			EncoderBuff[3 + ENCODER_BUFFER_SIZE] = (uint8_t)TAIL;
-			EncoderDrdy = 1;
-
-		}
-		else{
-			lost++;
-			GPIOOn(GPIO_LED_1);
-		}
-		if(!pedalsDrdy)
-		{
-			GPIOOff(GPIO_LED_1);
-
-			n_pedals++;
-			GPIOToggle(GPIO_LED_3);
-
-			PedalsBuff[0] = HEAD;
-			PedalsBuff[1] = PEDAL_HEAD;
-			PedalsBuff[2] = PEDAL_NCHAN;
-
-			for (uint8_t ch = 0;ch < PEDAL_NCHAN; ch++)
-			{
-				val = semg_ind % SEMG_RATE + ch;// (int32_t) 8388607+16777215*(arm_sin_f32((ch+1)*(semg_ind+1)*3.1416/SEMG_RATE));
-				PedalsBuff[3 + PEDAL_RESOL*ch+0] = (uint8_t) (val>>16);
-				PedalsBuff[3 + PEDAL_RESOL*ch+1] = (uint8_t) (val>>8);
-				PedalsBuff[3 + PEDAL_RESOL*ch+2] = (uint8_t) (val);
-			}
-			PedalsBuff[3 + PEDAL_BUFFER_SIZE] = (uint8_t)TAIL;
-			pedalsDrdy = 1;
-		}
-		else
-		{
-			lost ++;
-			GPIOOn(GPIO_LED_1);
-		}
-	}
-}
-*/
 
 
 
@@ -251,27 +158,77 @@ void SystickInt(void)
 
 }
 
+void interruption_tec_1(void){
+
+
+}
+
+void interruption_tec_2(void){
+	demand= demand+100;
+	StimUpdateDemand(0, demand);
+}
+
+void interruption_tec_3(void){
+	demand= demand-100;
+	StimUpdateDemand(0, demand);
+}
+
+void interruption_tec_4(void){
+	if (stimulating)
+	{
+		stimulating = 0;
+		StimDisable(0);
+	}
+	else
+	{
+		stimulating = 1;
+		StimEnable(0);
+	}
+}
+
+
+void DacInit2(){
+	/* Initialize the DAC peripheral */
+	Chip_DAC_Init(LPC_DAC);
+	Chip_Clock_EnableOpts(CLK_APB3_DAC, true, true, 1);
+	/* Set update rate to 400 KHz */
+	Chip_DAC_SetBias(LPC_DAC, DAC_MAX_UPDATE_RATE_400kHz);
+
+	/* Enables the DMA operation and controls DMA timer */
+	Chip_DAC_ConfigDAConverterControl(LPC_DAC, DAC_DMA_ENA);
+	/* DCAR DMA access */
+	/* Update value to DAC buffer*/
+	Chip_DAC_UpdateValue(LPC_DAC, 0);
+}
 
 
 /*==================[external functions definition]==========================*/
 int main(void)
 {
-	//uint8_t uart_buffer[24] = {};
-	//float32_t aux;
-	/*union {
-		float32_t ptpValue;
-		uint8_t buffer[4];
-	 } u_buffer;*/
+
 	SysInit();
-	ConfigADS();
-	//Configure_Timer0();
-	//Configure_Timer1();
+
 	serial_config serial_init = {SERIAL_PORT_PC, UART_BAUD_RATE, NULL};
 	UartInit(&serial_init);
+	DacInit2();
+	ConfigADS();
 
 	uint16_t res = 0;
-	uint8_t * val;
+	uint8_t * val;//
+	uint32_t outval = 0;
+    // gpio input initialization
 
+    GPIOInit(GPIO_TEC_1, GPIO_INPUT);
+    GPIOActivInt( GPIOGP0 , GPIO_TEC_1, interruption_tec_1 , 0); // 0 <- IRQ_EDGE_FALL
+    GPIOInit(GPIO_TEC_2, GPIO_INPUT);
+    GPIOActivInt( GPIOGP0 , GPIO_TEC_2, interruption_tec_2 , 0); // 0 <- IRQ_EDGE_FALL
+
+    GPIOInit(GPIO_TEC_3, GPIO_INPUT);
+    GPIOActivInt( GPIOGP1 , GPIO_TEC_3, interruption_tec_3 , 0); // 0 <- IRQ_EDGE_FALL
+
+    GPIOInit(GPIO_TEC_4, GPIO_INPUT);
+    GPIOActivInt( GPIOGP2 , GPIO_TEC_4, interruption_tec_4 , 0); // 0 <- IRQ_EDGE_FALL
+    StimInit();
 
 	while(1)
 	{
@@ -284,10 +241,17 @@ int main(void)
 		if(sEMGGetDRDY())
 		{
 			val = sEMGGetBuffer();
+			outval = 0;
 			for(res = 0;res  < 4 + sEMG_BUFFER_SIZE; res++)
+			{
 				UartSendByte(SERIAL_PORT_PC, *(val+res));
+				if (res>2 && res <6)
+					outval += (*(val+res))<<(8 *(3-res+2)); //
+
+			}
+			//  the 12 bit pushing should be checked.
+			Chip_DAC_UpdateValue(LPC_DAC, (outval)>> 12);
 			sEMGSetDRDY(0);
-			//new_data = false;
 		}
 		if(EncoderDrdy)
 		{

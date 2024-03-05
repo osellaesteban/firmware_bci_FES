@@ -22,6 +22,11 @@ extern uint8_t HEAD;
 extern uint8_t TAIL;
 //extern UART_BAUD_RATE;
 
+uint8_t StimTrxFlag = 0;
+
+/*==================[internal data definition]===============================*/
+uint8_t StimActiveChannel = 0;
+
 extern uint8_t STIM_CONFIG_HEAD;
 
 extern uint8_t STIM_CONFIG_ENABLED;
@@ -69,8 +74,6 @@ void StimSetBuff(uint8_t head,uint8_t up_value,uint8_t low_value)
  * Initializes the DAC
  */
 void DacInit(){
-
-
 	/* Initialize the DAC peripheral */
 	Chip_DAC_Init(LPC_DAC);
 	Chip_Clock_EnableOpts(CLK_APB3_DAC, true, true, 1);
@@ -91,29 +94,30 @@ void TIMER0_IRQHandler(void)
 {
 	if (Chip_TIMER_MatchPending(STIM_TIMER, 0))
 	{
-		Chip_TIMER_ClearMatch(LPC_TIMER1, 0);// Period definition
-		Chip_DAC_UpdateValue(LPC_DAC, 0);
+		Chip_TIMER_ClearMatch(STIM_TIMER, 0);// Period definition
+		Chip_DAC_UpdateValue(LPC_DAC, stimulator[StimActiveChannel].Demand);
 		GPIOOn(TRIGGER_GPIO);
-
+		GPIOToggle(GPIO_LED_3);
 	}
 	if (Chip_TIMER_MatchPending(STIM_TIMER, 1))
 	{
 		Chip_TIMER_ClearMatch(STIM_TIMER, 1);
-		GPIOOff(TRIGGER_GPIO);
 		Chip_DAC_UpdateValue(LPC_DAC, 0);
+		GPIOOff(TRIGGER_GPIO);
 
 	}
 	if (Chip_TIMER_MatchPending(STIM_TIMER, 2))
 	{
 		Chip_TIMER_ClearMatch(STIM_TIMER, 2);
-		GPIOOff(GPIO_LED_3);
-		//stimulator[stimActiveChannel].state = ST_IDLE;
+		//Chip_DAC_UpdateValue(LPC_DAC, 0);
+		GPIOOff(TRIGGER_GPIO);
+
 	}
 }
 
 
 void StimReset(){
-
+	StimInit();
 }
 
 /*
@@ -122,14 +126,37 @@ void StimReset(){
 void StimInit(){
 	DacInit();
     GPIOInit(TRIGGER_GPIO, GPIO_OUTPUT);
+    stimulator[StimActiveChannel].period = 20;
+    stimulator[StimActiveChannel].Demand = 100;
+    stimulator[StimActiveChannel].Width = 500;
     StimTimerConfig(StimActiveChannel);
 }
 
-void StimEnable(){
+uint8_t StimEnable(uint8_t chann){
 
+	// 4. Set appropriate value in MCR.
+	Chip_TIMER_MatchEnableInt(STIM_TIMER,0);
+	Chip_TIMER_MatchEnableInt(STIM_TIMER,1);
+	Chip_TIMER_MatchEnableInt(STIM_TIMER,2);
+
+	Chip_TIMER_ResetOnMatchEnable(STIM_TIMER,0);
+	Chip_TIMER_Reset(STIM_TIMER);
+
+	// 5. Enable the timer by configuring TCR.
+	Chip_TIMER_Enable(STIM_TIMER);
+
+	// 6. Enable timer interrupt if needed.
+	NVIC_EnableIRQ(TIMER0_IRQn);
+	Chip_DAC_UpdateValue(LPC_DAC, (uint32_t) 0);
+	//NVIC_ClearPendingIRQ(TIMER1_IRQn);
+	// stimulator.state = ST_UP;
+	// stimInit = 1;
 }
 
-void StimDeactivate(uint8_t channel){
+void StimDisable(uint8_t channel){
+	Chip_TIMER_Disable(STIM_TIMER);
+	Chip_DAC_UpdateValue(LPC_DAC, (uint32_t) 0);
+	GPIOOff(TRIGGER_GPIO);
 
 }
 
@@ -146,38 +173,31 @@ void StimTimerConfig(uint8_t channel){
 	Chip_TIMER_MatchEnableInt(STIM_TIMER, 0);
 	Chip_TIMER_ResetOnMatchEnable(STIM_TIMER, 0);
 	Chip_TIMER_StopOnMatchDisable(STIM_TIMER, 0);
-	Chip_TIMER_SetMatch(STIM_TIMER, 0, (uint32_t) (stimulator[StimActiveChannel].period*1000));
+	Chip_TIMER_SetMatch(STIM_TIMER, 0, (uint32_t) ( stimulator[StimActiveChannel].period*1000));
 
 	// Match 1 -> Change from up to down
 	Chip_TIMER_MatchEnableInt(STIM_TIMER, 1);
 	Chip_TIMER_ResetOnMatchDisable(STIM_TIMER, 1);
 	Chip_TIMER_StopOnMatchDisable(STIM_TIMER, 1);
-	Chip_TIMER_SetMatch(STIM_TIMER, 1, (uint32_t) stTriggerPW);
-	/*
+	Chip_TIMER_SetMatch(STIM_TIMER, 1, (uint32_t) stTriggerPW );
+
 	// Match 2 -> Change from down to zero
 	Chip_TIMER_MatchEnableInt(STIM_TIMER, 2);
 	Chip_TIMER_ResetOnMatchDisable(STIM_TIMER, 2);
 	Chip_TIMER_StopOnMatchDisable(STIM_TIMER, 2);
-	Chip_TIMER_SetMatch(STIM_TIMER, 2, (uint32_t) (stimulator[StimActiveChannel].durationDown+stimulator[StimActiveChannel].durationUp));
-*/
-	// 4. Set appropriate value in MCR.
-	Chip_TIMER_MatchEnableInt(STIM_TIMER,0);
-	//Chip_TIMER_MatchEnableInt(STIM_TIMER,1);
-	//Chip_TIMER_MatchEnableInt(LPC_TIMER1,2);
+	Chip_TIMER_SetMatch(STIM_TIMER, 2, (uint32_t) (stTriggerPW + stimulator[StimActiveChannel].Width));
+	//StimEnable(channel);
 
-	Chip_TIMER_ResetOnMatchEnable(STIM_TIMER,0);
-	Chip_TIMER_Reset(STIM_TIMER);
-
-	// 5. Enable the timer by configuring TCR.
-	Chip_TIMER_Enable(STIM_TIMER);
-
-	// 6. Enable timer interrupt if needed.
-	NVIC_EnableIRQ(TIMER1_IRQn);
-	Chip_DAC_UpdateValue(LPC_DAC, (uint32_t) stimulator[StimActiveChannel].Demand);
-	//NVIC_ClearPendingIRQ(TIMER1_IRQn);
-	// stimulator.state = ST_UP;
-	// stimInit = 1;
 }
 
-
+uint8_t StimUpdateDemand(uint8_t channel, uint16_t demand){
+	uint8_t res = 0;
+	if (channel < STIM_NUMCHAN)
+	{
+		stimulator[channel].Demand = demand;
+	}
+	else
+		res = 1;
+	return res;
+}
 

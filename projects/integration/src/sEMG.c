@@ -2,7 +2,7 @@
  * sEMG.c
  *
  *  Created on: 21 feb. 2024
- *      Author: osell
+ *      Author: osella
  */
 
 
@@ -16,7 +16,7 @@ extern uint8_t TAIL;
 //extern uint8_t PEDAL_HEAD;
 
 //extern uint8_t ENCODER_HEAD;
-
+gain_ADS1299_t sEMGGain = ADS1299_GAIN01;
 int32_t channel_data[8];
 uint8_t state[3];
 
@@ -24,8 +24,7 @@ uint8_t state[3];
 
 // samples obtained and loaded to the buffer
 uint8_t sEMGDrdy = 0;
-
-uint8_t sEMGBuff[sEMG_BUFFER_SIZE+4] = {};
+static uint8_t sEMGBuff[sEMG_BUFFER_SIZE+4] = {};
 
 uint8_t*  sEMGGetBuffer(){
 	return sEMGBuff;
@@ -41,23 +40,31 @@ uint16_t sEMGGetsEMGRate(){
 uint8_t sEMGGetDRDY(){
 	return (sEMGDrdy);
 }
-
+int32_t GetsEMGVal(){
+	return sEMGVal;
+}
 
 void sEMGBuffLoad(){
 	//static uint32_t lost = 0,n_semg = 0;
 
+	static uint32_t semgmax = 0,semgmin = 2^24;
 	//GPIOOn(GPIO_LED_1);
 	Chip_TIMER_ClearMatch(LPC_TIMER1, 0);
 	//uint8_t head = HEAD, semghead = SEMG_HEAD;
 	sEMGBuff[0] = HEAD;
 	sEMGBuff[1] = SEMG_HEAD;
 	sEMGBuff[2] = SEMG_NCHAN;
+	sEMGVal = channel_data[ADS1299_CHANNEL1];//
+	if (sEMGVal>semgmax)
+		semgmax = sEMGVal;
+	if (sEMGVal<semgmin)
+		semgmin = sEMGVal;
 	for (uint8_t ch = 0;ch < SEMG_NCHAN; ch++)
 	{
 		//val = semg_ind % SEMG_RATE + ch;// (int32_t) 8388607+16777215*(arm_sin_f32((ch+1)*(semg_ind+1)*3.1416/SEMG_RATE));
-		sEMGBuff[3+sEMG_RESOL*ch+0] = (uint8_t) (channel_data[ADS1299_CHANNEL1]>>16);//(val>>16);
-		sEMGBuff[3+sEMG_RESOL*ch+1] = (uint8_t) (channel_data[ADS1299_CHANNEL1]>>8);//(val>>8);
-		sEMGBuff[3+sEMG_RESOL*ch+2] = (uint8_t) (channel_data[ADS1299_CHANNEL1]);//(val);
+		sEMGBuff[3+sEMG_RESOL*ch+0] = (uint8_t) (channel_data[ADS1299_CHANNEL1]>>16);//(val>>16); //channel_data[ADS1299_CHANNEL1]
+		sEMGBuff[3+sEMG_RESOL*ch+1] = (uint8_t) (channel_data[ADS1299_CHANNEL1]>>8);//(val>>8); //channel_data[ADS1299_CHANNEL1]
+		sEMGBuff[3+sEMG_RESOL*ch+2] = (uint8_t) (channel_data[ADS1299_CHANNEL1]);//(val);//channel_data[ADS1299_CHANNEL1]
 
 	}
 	sEMGBuff[3 + sEMG_BUFFER_SIZE] = (uint8_t)TAIL;
@@ -66,6 +73,11 @@ void sEMGBuffLoad(){
 	LedToggle(LED_RGB_B);
 }
 
+
+void sEMGGainUpdate(gain_ADS1299_t newGain){
+	sEMGGain  = newGain;
+	ADS1299ChangeChannelPGAGain(ADS1299_CHANNEL1, sEMGGain );
+}
 
 /*
  * TIMER1_IRQHandler manages the sEMG and the enconder
@@ -143,7 +155,7 @@ void ConfigADS(void)
 		ADS1299SetChannelsToDefaultConfigForEMG();
 		//ADS1299SetChannelsToDefaultConfigForECG();
 		/* Cambia la ganancia a 1 para poder utilizarlo con un generador de funciones y que no sature el ADS */
-		//ADS1299ChangeChannelPGAGain(ADS1299_CHANNEL2, ADS1299_GAIN01);
+		ADS1299ChangeChannelPGAGain(ADS1299_CHANNEL1, sEMGGain );
 
 		/* Datos convertidos */
 		/* Indica a traves de la funcion de interrupcion ReadData que hay un dato nuevo en el vector channel_data y state.

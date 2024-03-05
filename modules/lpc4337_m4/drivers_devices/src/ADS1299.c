@@ -341,7 +341,7 @@ void ADS1299SetChannelsToDefaultConfigForEMG(void)
 	{
 		setting[i].power_down = true;
 		setting[i].use_srb2 = false;
-		setting[i].pga_gain = ADS1299_GAIN12;    // Se puede de acá cambiar la ganancia para todos los canales
+		setting[i].pga_gain = ADS1299_GAIN01;    // Se puede de acá cambiar la ganancia para todos los canales
 		setting[i].channel_input = ADS1299_NORMAL;
 	}
 	setting[ADS1299_CHANNEL1].power_down = false;

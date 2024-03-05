@@ -32,6 +32,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
+ *
+ * ToDo:
+ *  + make it multi channel.
+ *
  */
 
 /* Date: 2024-02-23 */
@@ -50,19 +54,16 @@ extern "C" {
 
 /*==================[macros and definitions]=================================*/
 
-
+#define STIM_SIM		0
 #define STIM_NUMCHAN	1
 #define STIM_TIMER		LPC_TIMER0
 #define TRIGGER_GPIO	GPIO_1
-#define stTriggerPW		50 // trigger pulsewidth duration in us.
+#define stTriggerPW		1000 // trigger pulsewidth duration in us.
 // Headers --> to headers file
 //uint8_t STIM_CONFIG_ = 0XFA;
 
 
-uint8_t StimTrxFlag = 0;
 
-/*==================[internal data definition]===============================*/
-uint8_t StimActiveChannel = 0;
 // =================== control structure ==================
 
 typedef enum ENABLED{
@@ -138,12 +139,14 @@ DS8Rstimulator_t stimulator[STIM_NUMCHAN];
 /*==================[internal data declaration]==============================*/
 
 void StimInit();
-void StimEnable();
+uint8_t StimEnable(uint8_t);
+void StimSetBuff(uint8_t head,uint8_t up_value,uint8_t low_value);
 uint8_t GetStimTrxFlag();
 void SetStimTrxFlag(uint8_t);
 void StimTimerConfig(uint8_t channel);
 void StimReset();
-void StimDeactivate(uint8_t channel);
+void StimDisable(uint8_t channel);
+uint8_t StimUpdateDemand(uint8_t channel, uint16_t demand);
 
 
 
