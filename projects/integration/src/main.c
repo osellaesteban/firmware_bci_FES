@@ -68,7 +68,8 @@
 	GPIO_LCD_RS
 *   \subsection subSec02 Stimulator
 *   + LPC_TIMER0
-*   + GPIO_1 con
+*   + GPIO_1 as stimulation trigger
+*   + DAC0 as analog value for the stimulator.
 *
 *  ToDo:
 *  + A method should be included to online change the ADC gain by serial port
@@ -159,17 +160,21 @@ void SystickInt(void)
 }
 
 void interruption_tec_1(void){
-
-
+	// check wether the fw or the hw is ok, since it's not responding as expected
 }
 
 void interruption_tec_2(void){
-	demand= demand+100;
+	demand= demand+50;
+	if (demand >1023)
+		demand = 1023;
 	StimUpdateDemand(0, demand);
 }
 
 void interruption_tec_3(void){
-	demand= demand-100;
+	demand= demand-50;
+	if (demand >1023)
+		demand = 0;
+
 	StimUpdateDemand(0, demand);
 }
 
@@ -210,7 +215,7 @@ int main(void)
 
 	serial_config serial_init = {SERIAL_PORT_PC, UART_BAUD_RATE, NULL};
 	UartInit(&serial_init);
-	DacInit2();
+	//DacInit2();
 	ConfigADS();
 
 	uint16_t res = 0;
@@ -220,6 +225,7 @@ int main(void)
 
     GPIOInit(GPIO_TEC_1, GPIO_INPUT);
     GPIOActivInt( GPIOGP0 , GPIO_TEC_1, interruption_tec_1 , 0); // 0 <- IRQ_EDGE_FALL
+
     GPIOInit(GPIO_TEC_2, GPIO_INPUT);
     GPIOActivInt( GPIOGP0 , GPIO_TEC_2, interruption_tec_2 , 0); // 0 <- IRQ_EDGE_FALL
 
@@ -243,14 +249,7 @@ int main(void)
 			val = sEMGGetBuffer();
 			outval = 0;
 			for(res = 0;res  < 4 + sEMG_BUFFER_SIZE; res++)
-			{
 				UartSendByte(SERIAL_PORT_PC, *(val+res));
-				if (res>2 && res <6)
-					outval += (*(val+res))<<(8 *(3-res+2)); //
-
-			}
-			//  the 12 bit pushing should be checked.
-			Chip_DAC_UpdateValue(LPC_DAC, (outval)>> 12);
 			sEMGSetDRDY(0);
 		}
 		if(EncoderDrdy)
@@ -258,6 +257,13 @@ int main(void)
 			for(res = 0;res  < 4 + ENCODER_BUFFER_SIZE; res++)
 				UartSendByte(SERIAL_PORT_PC, EncoderBuff+res);
 			EncoderDrdy = 0;
+		}
+		if(StimGetTrxFlag())
+		{
+			val = StimGetBuffer();
+			for(res = 0;res  < 4 + STIM_BUFF_SIZE; res++)
+				UartSendByte(SERIAL_PORT_PC, *(val+res));
+			StimSetTrxFlag(0);
 		}
 	}
 	return 0;

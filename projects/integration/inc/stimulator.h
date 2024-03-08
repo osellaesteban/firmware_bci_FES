@@ -33,8 +33,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  *
+ *  Considerations:
+ *  + Output trigger level should be addapted to 5V.
+ *  + Output level should be taken from 0-3.3V to 0-10V.
+ *
  * ToDo:
- *  + make it multi channel.
+ *  + make it multi really channel.
  *
  */
 
@@ -63,6 +67,7 @@ extern "C" {
 //uint8_t STIM_CONFIG_ = 0XFA;
 
 
+#define STIM_BUFF_SIZE	6 // 2 for the headers, 1 for variable, 2 for the data, 1 for the tail.
 
 // =================== control structure ==================
 
@@ -141,12 +146,13 @@ DS8Rstimulator_t stimulator[STIM_NUMCHAN];
 void StimInit();
 uint8_t StimEnable(uint8_t);
 void StimSetBuff(uint8_t head,uint8_t up_value,uint8_t low_value);
-uint8_t GetStimTrxFlag();
-void SetStimTrxFlag(uint8_t);
+uint8_t StimGetSTrxFlag();
+void StimSetTrxFlag(uint8_t);
 void StimTimerConfig(uint8_t channel);
 void StimReset();
 void StimDisable(uint8_t channel);
 uint8_t StimUpdateDemand(uint8_t channel, uint16_t demand);
+uint8_t*  StimGetBuffer();
 
 
 

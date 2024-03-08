@@ -40,16 +40,18 @@ extern uint8_t STIM_CONFIG_WIDTH;
 extern uint8_t STIM_CONFIG_RECOVERY ;
 extern uint8_t STIM_CONFIG_DWELL;
 extern uint8_t STIM_CONFIG_PERIOD;
-#define STIM_BUFF_SIZE	6 // 2 for the headers, 1 for variable, 2 for the data, 1 for the tail.
+extern uint8_t STIM_CONFIG_DEMAND;
 
 uint8_t stimTxBuff[STIM_BUFF_SIZE] = {};
 
+
+
 // External functions definitions
-uint8_t GetStimTrxFlag()
+uint8_t StimGetTrxFlag()
 {
 	return StimTrxFlag;
 }
-void SetStimTrxFlag(uint8_t val){
+void StimSetTrxFlag(uint8_t val){
 	StimTrxFlag = val;
 }
 
@@ -58,15 +60,18 @@ void StimSetBuff(uint8_t head,uint8_t up_value,uint8_t low_value)
 	stimTxBuff[0] = HEAD;
 	stimTxBuff[1] = STIM_CONFIG_HEAD;
 	stimTxBuff[2] = head;
-	if (head == STIM_CONFIG_PERIOD){
+
+	if(head == STIM_CONFIG_PERIOD || head == STIM_CONFIG_DEMAND )
+	{
 		stimTxBuff[3] = up_value;
-		stimTxBuff[3] = low_value;
+		stimTxBuff[4] = low_value;
 		stimTxBuff[5] = TAIL;
 	}
-	else {
+	else{
 		stimTxBuff[3] = low_value;
 		stimTxBuff[4] = TAIL;
 	}
+
 	StimTrxFlag = TRUE;
 }
 
@@ -102,7 +107,7 @@ void TIMER0_IRQHandler(void)
 	if (Chip_TIMER_MatchPending(STIM_TIMER, 1))
 	{
 		Chip_TIMER_ClearMatch(STIM_TIMER, 1);
-		Chip_DAC_UpdateValue(LPC_DAC, 0);
+		//Chip_DAC_UpdateValue(LPC_DAC, 0);
 		GPIOOff(TRIGGER_GPIO);
 
 	}
@@ -147,6 +152,7 @@ uint8_t StimEnable(uint8_t chann){
 
 	// 6. Enable timer interrupt if needed.
 	NVIC_EnableIRQ(TIMER0_IRQn);
+
 	Chip_DAC_UpdateValue(LPC_DAC, (uint32_t) 0);
 	//NVIC_ClearPendingIRQ(TIMER1_IRQn);
 	// stimulator.state = ST_UP;
@@ -199,5 +205,10 @@ uint8_t StimUpdateDemand(uint8_t channel, uint16_t demand){
 	else
 		res = 1;
 	return res;
+}
+
+
+uint8_t*  StimGetBuffer(){
+	return stimTxBuff;
 }
 
