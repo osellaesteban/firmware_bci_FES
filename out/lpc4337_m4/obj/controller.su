@@ -1,0 +1,13 @@
+controller.c:23:6:ControlInitialize	16	static
+controller.c:40:10:ControlGetBuffer	4	static
+controller.c:44:6:ControlSetTrxFlag	16	static
+controller.c:48:9:ControlGetTrxFlag	4	static
+controller.c:52:6:ControlUpdateAngle	16	static
+controller.c:57:10:ControlComputeDemand	16	static
+controller.c:72:9:ControlSetMuscleFatigueLimits	32	static
+controller.c:88:9:ControlSetMuscleFatigue	24	static
+controller.c:99:10:ControlGetFatigue	16	static
+controller.c:103:9:ControlGetMuscleAngleLimits	32	static
+controller.c:115:9:ControlSetMuscleAngleLimits	24	static
+controller.c:130:10:ControlMotorUpdate	8	static
+controller.c:144:6:ControlUpdateStimulation	16	static

@@ -38,7 +38,7 @@
  *  + Output level should be taken from 0-3.3V to 0-10V.
  *
  * ToDo:
- *  + make it multi really channel.
+ *  + make it really multi channel.
  *
  */
 
@@ -67,7 +67,6 @@ extern "C" {
 //uint8_t STIM_CONFIG_ = 0XFA;
 
 
-#define STIM_BUFF_SIZE	6 // 2 for the headers, 1 for variable, 2 for the data, 1 for the tail.
 
 // =================== control structure ==================
 
@@ -113,7 +112,7 @@ typedef struct {
 //struct DS8R_control_t DS8R_control = {E_DISABLED,BIPHASIC,POSITIVE,
 //		EXTERNAL,START,T_NO_CHANGE,B_DISABLED,0};
 
-// ================== ds8r state strucutre ======================
+// ================== DS8R state strucutre ======================
 
 typedef struct{
 	DS8R_control_t DS8R_control;
@@ -135,7 +134,7 @@ typedef struct{
 	uint16_t period;  	// stimulation period [ms]
 } DS8Rstimulator_t;
 
-DS8Rstimulator_t stimulator[STIM_NUMCHAN];
+
 
 /**
  * @}
@@ -145,15 +144,19 @@ DS8Rstimulator_t stimulator[STIM_NUMCHAN];
 
 void StimInit();
 uint8_t StimEnable(uint8_t);
+ENABLED_T StimGetEnabled(uint8_t);
+void StimDisable(uint8_t channel);
+void StimDisableDS8R(void);
+
 void StimSetBuff(uint8_t head,uint8_t up_value,uint8_t low_value);
 uint8_t StimGetSTrxFlag();
 void StimSetTrxFlag(uint8_t);
 void StimTimerConfig(uint8_t channel);
 void StimReset();
-void StimDisable(uint8_t channel);
 uint8_t StimUpdateDemand(uint8_t channel, uint16_t demand);
-uint8_t*  StimGetBuffer();
+uint8_t* StimGetBuffer();
 
+uint8_t StimUpdatePeriod(uint8_t,uint16_t);
 
 
 

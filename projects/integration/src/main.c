@@ -84,11 +84,11 @@
 #include "dsp_EMG.h"
 #include <arm_math.h>
 #include "led.h"
-//#include "serial_headers.h"
+#include "serial_headers.h"
 #include "sEMG.h"
+#include "controller.h"
 #include "stimulator.h"
 
-#include "serial_headers.h"
 
 /*==================[macros and definitions]=================================*/
 
@@ -106,10 +106,21 @@
 //resolution in bytes
 #define PEDAL_RESOL		3
 #define ENCODER_RESOL	2 // it is a 12 bits dac, but lets consider it as a 16 bit.
+
+
+// serial receiving definitions
+#define RX_BUFF_SIZE 8 // HEAD DESCRIPTOR DATA*5 TAIL
+
+
+uint16_t AngleBias = 0;
+uint16_t MeassuredAngle = 0;
+
+/*===================[external data declaration]=============================*/
+
+//extern STIM_BUFF_SIZE;
 /*==================[internal data declaration]==============================*/
 
 uint8_t stimulating = 0;
-static uint16_t demand = 0;
 
 /*==================[internal functions declaration]=========================*/
 void SystickInt(void);
@@ -133,13 +144,52 @@ uint8_t EncoderBuff[ENCODER_BUFFER_SIZE+4] = {};
 uint8_t pedalsDrdy = 0;
 uint8_t EncoderDrdy = 0;
 
-
+uint8_t RxBuff[RX_BUFF_SIZE];
+uint8_t RxResend = 0;
 // static uint16_t pedals_ind = 0, encoder_ind = 0;
 /*==================[external data definition]===============================*/
 extern uint8_t sEMGDrdy;
 /*==================[internal functions definition]==========================*/
 
 
+uint32_t FatigueStat = 0;
+void interruption_tec_1(void){
+	// check wether the fw or the hw is ok, since it's not responding as expected
+}
+void LimitsInitilization();
+void interruption_tec_2(void){
+	MeassuredAngle = MeassuredAngle+10;
+	if (MeassuredAngle > 360)
+		MeassuredAngle = 0;
+	ControlUpdateAngle(MeassuredAngle);
+
+}
+
+void interruption_tec_3(void){
+	MeassuredAngle = MeassuredAngle-10;
+	if (MeassuredAngle > 360)
+		MeassuredAngle = 360;
+	ControlUpdateAngle(MeassuredAngle);
+}
+
+void interruption_tec_4(void){
+	FatigueStat+=10;
+	ControlSetMuscleFatigue(QUAD, FatigueStat);
+}
+
+void GPIOInitialization(){
+	GPIOInit(GPIO_TEC_1, GPIO_INPUT);
+	GPIOActivInt( GPIOGP0 , GPIO_TEC_1, interruption_tec_1 , 0); // 0 <- IRQ_EDGE_FALL
+
+	GPIOInit(GPIO_TEC_2, GPIO_INPUT);
+	GPIOActivInt( GPIOGP0 , GPIO_TEC_2, interruption_tec_2 , 0); // 0 <- IRQ_EDGE_FALL
+
+	GPIOInit(GPIO_TEC_3, GPIO_INPUT);
+	GPIOActivInt( GPIOGP1 , GPIO_TEC_3, interruption_tec_3 , 0); // 0 <- IRQ_EDGE_FALL
+
+	GPIOInit(GPIO_TEC_4, GPIO_INPUT);
+	GPIOActivInt( GPIOGP2 , GPIO_TEC_4, interruption_tec_4 , 0); // 0 <- IRQ_EDGE_FALL
+}
 
 void SysInit(void)
 {
@@ -152,59 +202,48 @@ void SysInit(void)
     SystickInit(500, SystickInt);
     fpuInit();//Enable FPU
 
+    // gpio input initialization
+    GPIOInitialization();
 }
 
 void SystickInt(void)
 {
-
-}
-
-void interruption_tec_1(void){
-	// check wether the fw or the hw is ok, since it's not responding as expected
-}
-
-void interruption_tec_2(void){
-	demand= demand+50;
-	if (demand >1023)
-		demand = 1023;
-	StimUpdateDemand(0, demand);
-}
-
-void interruption_tec_3(void){
-	demand= demand-50;
-	if (demand >1023)
-		demand = 0;
-
-	StimUpdateDemand(0, demand);
-}
-
-void interruption_tec_4(void){
-	if (stimulating)
-	{
-		stimulating = 0;
-		StimDisable(0);
-	}
-	else
-	{
-		stimulating = 1;
-		StimEnable(0);
-	}
+	ControlUpdateAngle(MeassuredAngle+AngleBias);
+	ControlUpdateStimulation();
+	ControlMotorUpdate();
 }
 
 
-void DacInit2(){
-	/* Initialize the DAC peripheral */
-	Chip_DAC_Init(LPC_DAC);
-	Chip_Clock_EnableOpts(CLK_APB3_DAC, true, true, 1);
-	/* Set update rate to 400 KHz */
-	Chip_DAC_SetBias(LPC_DAC, DAC_MAX_UPDATE_RATE_400kHz);
 
-	/* Enables the DMA operation and controls DMA timer */
-	Chip_DAC_ConfigDAConverterControl(LPC_DAC, DAC_DMA_ENA);
-	/* DCAR DMA access */
-	/* Update value to DAC buffer*/
-	Chip_DAC_UpdateValue(LPC_DAC, 0);
+void UpdateFatigueMsg(void){
+	muscle_t muscle = (muscle_t ) RxBuff[2];
+	FatigueStat = (((uint32_t) RxBuff[3]) << 24) + (((uint32_t) RxBuff[4]) << 16) +
+			(((uint32_t) RxBuff[5]) << 8 ) + (((uint32_t) RxBuff[6]));
+	ControlSetMuscleFatigue(muscle,FatigueStat);
 }
+
+void UpdateAngleBiasMsg(void){
+	AngleBias = (((uint32_t) RxBuff[2]) << 8 ) + (((uint32_t) RxBuff[2]));
+}
+
+void UpdateControlMsg(){
+
+}
+
+void Resend()
+{
+	static uint8_t CommandBuff[4];
+	CommandBuff[0] = HEAD;
+	CommandBuff[1] = COMMAND_HEAD;
+	CommandBuff[2] = COMMAND_RESEND;
+	CommandBuff[3] = TAIL;
+	UartSendBuffer(SERIAL_PORT_PC, CommandBuff,4) ;
+	RxResend = 0;
+/*
+	for(res = 0;res  < 4; res++)
+		UartSendByte(SERIAL_PORT_PC, controlBuff+res);*/
+}
+
 
 
 /*==================[external functions definition]==========================*/
@@ -215,41 +254,31 @@ int main(void)
 
 	serial_config serial_init = {SERIAL_PORT_PC, UART_BAUD_RATE, NULL};
 	UartInit(&serial_init);
-	//DacInit2();
 	ConfigADS();
 
 	uint16_t res = 0;
 	uint8_t * val;//
-	uint32_t outval = 0;
-    // gpio input initialization
+	uint8_t rval=0;
 
-    GPIOInit(GPIO_TEC_1, GPIO_INPUT);
-    GPIOActivInt( GPIOGP0 , GPIO_TEC_1, interruption_tec_1 , 0); // 0 <- IRQ_EDGE_FALL
+    // StimInit();
+	ControlInitialize();
 
-    GPIOInit(GPIO_TEC_2, GPIO_INPUT);
-    GPIOActivInt( GPIOGP0 , GPIO_TEC_2, interruption_tec_2 , 0); // 0 <- IRQ_EDGE_FALL
-
-    GPIOInit(GPIO_TEC_3, GPIO_INPUT);
-    GPIOActivInt( GPIOGP1 , GPIO_TEC_3, interruption_tec_3 , 0); // 0 <- IRQ_EDGE_FALL
-
-    GPIOInit(GPIO_TEC_4, GPIO_INPUT);
-    GPIOActivInt( GPIOGP2 , GPIO_TEC_4, interruption_tec_4 , 0); // 0 <- IRQ_EDGE_FALL
-    StimInit();
-
+    uint8_t buff_ptr = 0;
 	while(1)
 	{
 		if(pedalsDrdy)
 		{
-			for(res = 0;res  < 4 + PEDAL_BUFFER_SIZE; res++)
-				UartSendByte(SERIAL_PORT_PC, PedalsBuff+res);
+			UartSendBuffer(SERIAL_PORT_PC, PedalsBuff, 4 + PEDAL_BUFFER_SIZE) ;
+			/*for(res = 0;res  < 4 + PEDAL_BUFFER_SIZE; res++)
+				UartSendByte(SERIAL_PORT_PC, PedalsBuff+res);*/
 			pedalsDrdy = 0;
 		}
 		if(sEMGGetDRDY())
 		{
 			val = sEMGGetBuffer();
-			outval = 0;
-			for(res = 0;res  < 4 + sEMG_BUFFER_SIZE; res++)
-				UartSendByte(SERIAL_PORT_PC, *(val+res));
+			UartSendBuffer(SERIAL_PORT_PC, val, 4 + sEMG_BUFFER_SIZE) ;
+			/* for(res = 0;res  < 4 + sEMG_BUFFER_SIZE; res++)
+				UartSendByte(SERIAL_PORT_PC, *(val+res));*/
 			sEMGSetDRDY(0);
 		}
 		if(EncoderDrdy)
@@ -261,12 +290,54 @@ int main(void)
 		if(StimGetTrxFlag())
 		{
 			val = StimGetBuffer();
-			for(res = 0;res  < 4 + STIM_BUFF_SIZE; res++)
-				UartSendByte(SERIAL_PORT_PC, *(val+res));
+			UartSendBuffer(SERIAL_PORT_PC, val,4 + STIM_BUFF_SIZE) ;
+			/*for(res = 0;res  < 4 + STIM_BUFF_SIZE; res++)
+				UartSendByte(SERIAL_PORT_PC, *(val+res));*/
 			StimSetTrxFlag(0);
+		}
+		if(ControlGetTrxFlag())
+		{
+			val = ControlGetBuffer();
+			UartSendBuffer(SERIAL_PORT_PC, val,4 + CTRL_BUFF_SIZE) ;
+			StimSetTrxFlag(0);
+		}
+		if (UartRxReady(SERIAL_PORT_PC))
+		{
+			UartReadByte(SERIAL_PORT_PC,&rval);
+			if (rval == HEAD)
+			{
+				RxBuff[buff_ptr] = HEAD;
+				for (buff_ptr = 1; buff_ptr <RX_BUFF_SIZE ; buff_ptr++)
+				{
+					UartReadByte(SERIAL_PORT_PC,&rval);
+					RxBuff[buff_ptr] = rval;
+				}
+
+				buff_ptr = 0;
+				switch (RxBuff[1]){
+				case COMMAND_HEAD:
+					UpdateControlMsg();
+					break;
+				case FATIGUE_HEAD:
+					UpdateFatigueMsg();
+					break;
+				case COMMAND_ANGLE_BIAS:
+					UpdateAngleBiasMsg();
+					break;
+				default:
+					RxResend = 1;
+					Resend();
+					break;
+				}
+			}
 		}
 	}
 	return 0;
 }
+
+
+
+
+
 /*==================[end of file]============================================*/
 

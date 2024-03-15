@@ -26,7 +26,7 @@
 
 #define sEMG_BUFFER_SIZE	(SEMG_NCHAN*sEMG_RESOL)
 
-static uint16_t semg_ind= 0;
+
 uint32_t sEMGVal;
 
 

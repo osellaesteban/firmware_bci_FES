@@ -7,11 +7,12 @@
 
 
 #include "sEMG.h"
+#include "serial_headers.h"
 
 //#include "systick.h"
-extern uint8_t HEAD;
-extern uint8_t SEMG_HEAD;
-extern uint8_t TAIL;
+// extern uint8_t HEAD;
+// extern uint8_t SEMG_HEAD;
+// extern uint8_t TAIL;
 
 //extern uint8_t PEDAL_HEAD;
 
@@ -20,7 +21,7 @@ gain_ADS1299_t sEMGGain = ADS1299_GAIN01;
 int32_t channel_data[8];
 uint8_t state[3];
 
-
+static uint16_t semg_ind= 0;
 
 // samples obtained and loaded to the buffer
 uint8_t sEMGDrdy = 0;

@@ -38,32 +38,48 @@ extern "C" {
 /*==================[external data declaration]==============================*/
 
 // Headers definition
-uint8_t HEAD = 0xCA;
-uint8_t TAIL = 0xAC;
+#define HEAD			0xCA
+#define TAIL 			0xAC
 
-uint8_t PEDAL_HEAD = 0XCF;
-uint8_t SEMG_HEAD = 0XCE;
-uint8_t ENCODER_HEAD = 0XCD;
+#define PEDAL_HEAD 		0XCF
+#define SEMG_HEAD 		0XCE
+#define ENCODER_HEAD	0XCD
 
 // stimulator
-uint8_t STIM_CONFIG_HEAD = 0xFB;
+#define STIM_CONFIG_HEAD 		0xFB
 
-uint8_t STIM_CONFIG_ENABLED = 0XF0;
-uint8_t STIM_CONFIG_MODE = 0XF1;
-uint8_t STIM_CONFIG_POLARITY = 0XF2;
-uint8_t STIM_CONFIG_SOURCE= 0XF3;
-uint8_t STIM_CONFIG_ZERO = 0XF4;
-uint8_t STIM_CONFIG_TRIGGER = 0XF5;
-uint8_t STIM_CONFIG_BUZZER = 0XF6;
-uint8_t STIM_CONFIG_WIDTH = 0XF7;
-uint8_t STIM_CONFIG_RECOVERY = 0XF8;
-uint8_t STIM_CONFIG_DWELL = 0XF9;
-uint8_t STIM_CONFIG_PERIOD = 0XFA;
-uint8_t STIM_CONFIG_DEMAND = 0XFA;
+#define STIM_CONFIG_ENABLED 	0XF0
+#define STIM_CONFIG_MODE 		0XF1
+#define STIM_CONFIG_POLARITY 	0XF2
+#define STIM_CONFIG_SOURCE 		0XF3
+#define STIM_CONFIG_ZERO 		0XF4
+#define STIM_CONFIG_TRIGGER 	0XF5
+#define STIM_CONFIG_BUZZER 		0XF6
+#define STIM_CONFIG_WIDTH 		0XF7
+#define STIM_CONFIG_RECOVERY  	0XF8
+#define STIM_CONFIG_DWELL  		0XF9
+#define STIM_CONFIG_PERIOD  	0XFA
+#define STIM_CONFIG_DEMAND 		0XFA
+#define STIM_BUFF_SIZE			6 // 2 for the headers, 1 for variable, 2 for the data, 1 for the tail.
 
 // sEMG
-uint8_t SEMG_GAIN_HEADER = 0XC0;
+#define SEMG_GAIN_HEADER 		0XC0
 
+// FATIGUE
+#define FATIGUE_HEAD    		0XD0
+
+// COMMAND
+#define COMMAND_HEAD    		0XA0
+#define COMMAND_START   		0XAF
+#define COMMAND_STOP   	 		0XAE
+#define COMMAND_RESEND  		0XA1
+#define COMMAND_ANGLE_BIAS		0XAC
+
+// CONTROL ACTION COMPUTATION
+
+#define CONTROL_HEAD			0XE0
+#define CONTROL_MOTOR_HEAD		0XE1
+#define CONTROL_STIM_HEAD		0XE2
 
 
 /*==================[external functions declaration]=========================*/
